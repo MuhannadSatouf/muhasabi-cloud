@@ -1,14 +1,14 @@
 import { DashboardPageHeader } from "../../../components/layout/dashboard-page-header";
 
-export default function JournalPage() {
+export default function ExpensesPage() {
   return (
     <div>
       <DashboardPageHeader
-        title="Journal entries"
-        subtitle="Record adjustments and non-invoice movements."
+        title="Expenses"
+        subtitle="Track and categorize business spending."
       />
       <p className="text-sm text-muted-foreground">
-        Content will appear here as you build out the module.
+        This module is coming soon.
       </p>
     </div>
   );
