@@ -7,6 +7,7 @@ import Link from "next/link";
 import { AuthPageShell } from "../../../components/auth/auth-page-shell";
 import { Button } from "../../../components/ui/button";
 import { inputFieldClass } from "../../../components/ui/field-classes";
+import { createDefaultAccounts } from "@/lib/default-accounts";
 
 export default function RegisterPage() {
   const router = useRouter();

@@ -15,6 +15,7 @@ model Company {
   updatedAt DateTime @updatedAt
 
   users User[]
+  accounts Account[]
 }
 
 enum UserRole {
@@ -36,4 +37,28 @@ model User {
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@unique([companyId, email])
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+model Account {
+  id        String      @id @default(cuid())
+  companyId String
+  code      String
+  name      String
+  nameAr    String?
+  type      AccountType
+  isSystem  Boolean     @default(false)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, code])
 }

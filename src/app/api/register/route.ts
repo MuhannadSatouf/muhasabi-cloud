@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { flattenError, z } from "zod";
 
 import { prisma } from "../../../lib/prisma";
+import { createDefaultAccounts } from "@/lib/default-accounts";
 
 const registerSchema = z.object({
   companyName: z.string().min(2, "Company name is required"),
@@ -74,6 +75,7 @@ export async function POST(req: Request) {
         },
       });
 
+      await createDefaultAccounts(tx, company.id);
       return {
         companyId: company.id,
         userId: user.id,

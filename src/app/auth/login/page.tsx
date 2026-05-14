@@ -12,27 +12,36 @@ import { inputFieldClass } from "../../../components/ui/field-classes";
 export default function LoginPage() {
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     setError("");
+    setPending(true);
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    const email = String(fd.get("email") ?? "").trim();
+    const password = String(fd.get("password") ?? "");
 
-    if (result?.error) {
-      setError("Invalid email or password");
-      return;
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Invalid email or password");
+        return;
+      }
+
+      router.push("/dashboard");
+    } finally {
+      setPending(false);
     }
-
-    router.push("/dashboard");
   }
 
   return (
@@ -57,8 +66,7 @@ export default function LoginPage() {
           autoComplete="email"
           placeholder="Email"
           className={inputFieldClass}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          required
         />
 
         <input
@@ -67,8 +75,8 @@ export default function LoginPage() {
           autoComplete="current-password"
           placeholder="Password"
           className={inputFieldClass}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          required
+          minLength={8}
         />
 
         {error ? (
@@ -77,8 +85,8 @@ export default function LoginPage() {
           </p>
         ) : null}
 
-        <Button type="submit" variant="brand" className="w-full">
-          Sign in
+        <Button type="submit" variant="brand" className="w-full" disabled={pending}>
+          {pending ? "Signing in…" : "Sign in"}
         </Button>
       </form>
 
