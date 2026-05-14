@@ -2,6 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
+import { THEME_STORAGE_KEY } from "../../lib/theme-storage";
 import { Button } from "../ui/button";
 
 function readDark() {
@@ -21,6 +22,11 @@ export function ThemeToggle() {
   const toggle = useCallback(() => {
     const next = !document.documentElement.classList.contains("dark");
     document.documentElement.classList.toggle("dark", next);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, next ? "dark" : "light");
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   return (

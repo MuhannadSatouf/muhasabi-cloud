@@ -6,7 +6,7 @@ import { z } from "zod";
 import { prisma } from "./lib/prisma";
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().toLowerCase().pipe(z.string().email()),
   password: z.string().min(8),
 });
 
@@ -33,7 +33,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const user = await prisma.user.findFirst({
           where: {
-            email: email.toLowerCase(),
+            email,
           },
         });
 
