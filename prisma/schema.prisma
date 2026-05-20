@@ -17,6 +17,24 @@ model User {
   workspaceMemberships WorkspaceMembership[]
 }
 
+enum PlatformAdminRole {
+  SUPER_ADMIN
+  SUPPORT
+  COMPLIANCE
+}
+
+model PlatformAdmin {
+  id             String            @id @default(cuid())
+  email          String            @unique
+  hashedPassword String
+  name           String
+  role           PlatformAdminRole @default(SUPER_ADMIN)
+  isActive       Boolean           @default(true)
+  lastLoginAt    DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
+
 enum WorkspaceRole {
   OWNER
   ADMIN
@@ -25,11 +43,14 @@ enum WorkspaceRole {
 }
 
 model Workspace {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  isBlocked   Boolean   @default(false)
+  blockedAt   DateTime?
+  blockReason String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   memberships  WorkspaceMembership[]
   companies    Company[]
@@ -91,18 +112,19 @@ model Account {
 }
 
 model Plan {
-  id           String   @id @default(cuid())
-  code         String   @unique
-  name         String
-  description  String?
-  companyLimit Int?
-  trialDays    Int?
-  monthlyPrice Decimal? @db.Decimal(18, 2)
-  currency     String   @default("USD")
-  isActive     Boolean  @default(true)
-  sortOrder    Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String   @id @default(cuid())
+  code          String   @unique
+  name          String
+  description   String?
+  companyLimit  Int?
+  trialDays     Int?
+  monthlyPrice  Decimal? @db.Decimal(18, 2)
+  currency      String   @default("USD")
+  stripePriceId String?
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   subscriptions Subscription[]
 }

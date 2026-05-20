@@ -27,6 +27,19 @@ export default async function DashboardLayout({
     },
   });
 
+  const workspace = await prisma.workspace.findUnique({
+    where: {
+      id: session.user.workspaceId,
+    },
+    select: {
+      isBlocked: true,
+    },
+  });
+
+  if (workspace?.isBlocked) {
+    redirect("/auth/login");
+  }
+
   if (!isKycCurrent(kyc)) {
     redirect("/kyc");
   }
