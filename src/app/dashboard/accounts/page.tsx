@@ -8,18 +8,29 @@ import { Card } from "../../../components/ui/card";
 export default async function AccountsPage() {
   const session = await auth();
 
-  if (!session?.user?.companyId) {
+  if (!session?.user?.workspaceId) {
     redirect("/auth/login");
   }
 
-  const accounts = await prisma.account.findMany({
+  const company = await prisma.company.findFirst({
     where: {
-      companyId: session.user.companyId,
+      workspaceId: session.user.workspaceId,
     },
-    orderBy: {
-      code: "asc",
+    select: {
+      id: true,
     },
   });
+
+  const accounts = company
+    ? await prisma.account.findMany({
+        where: {
+          companyId: company.id,
+        },
+        orderBy: {
+          code: "asc",
+        },
+      })
+    : [];
 
   return (
     <div className="space-y-6">
@@ -58,7 +69,7 @@ export default async function AccountsPage() {
                     colSpan={5}
                     className="px-4 py-8 text-center text-sm text-muted-foreground"
                   >
-                    No accounts found for this company yet.
+                    No company has been created for this workspace yet.
                   </td>
                 </tr>
               ) : (

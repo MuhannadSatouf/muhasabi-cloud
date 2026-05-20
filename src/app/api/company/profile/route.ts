@@ -5,16 +5,16 @@ import { prisma } from "../../../../lib/prisma";
 export async function GET() {
   const session = await auth();
 
-  if (!session?.user?.companyId) {
+  if (!session?.user?.workspaceId) {
     return NextResponse.json(
       { error: "Unauthorized" },
       { status: 401 }
     );
   }
 
-  const company = await prisma.company.findUnique({
+  const company = await prisma.company.findFirst({
     where: {
-      id: session.user.companyId,
+      workspaceId: session.user.workspaceId,
     },
     select: {
       id: true,

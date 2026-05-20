@@ -7,7 +7,7 @@ import { prisma } from "../../../lib/prisma";
 import { createDefaultAccounts } from "@/lib/default-accounts";
 
 const registerSchema = z.object({
-  companyName: z.string().min(2, "Company name is required"),
+  workspaceName: z.string().min(2, "Workspace name is required"),
   name: z.string().min(2, "Name is required"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { companyName, name, email, password } = parsed.data;
+    const { workspaceName, name, email, password } = parsed.data;
     const normalizedEmail = email.toLowerCase();
 
     const existingUser = await prisma.user.findFirst({
@@ -57,28 +57,56 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const company = await tx.company.create({
-        data: {
-          name: companyName,
-          slug: createSlug(companyName),
-          currency: "SYP",
+      const trialPlan = await tx.plan.findUnique({
+        where: {
+          code: "TRIAL",
         },
       });
-
+    
+      if (!trialPlan) {
+        throw new Error("TRIAL plan not found");
+      }
+    
       const user = await tx.user.create({
         data: {
-          companyId: company.id,
           email: normalizedEmail,
           hashedPassword,
           name,
+        },
+      });
+    
+      const workspace = await tx.workspace.create({
+        data: {
+          name: workspaceName,
+          slug: createSlug(workspaceName),
+        },
+      });
+    
+      await tx.workspaceMembership.create({
+        data: {
+          userId: user.id,
+          workspaceId: workspace.id,
           role: "OWNER",
         },
       });
-
-      await createDefaultAccounts(tx, company.id);
+    
+      const now = new Date();
+      const trialEndsAt = new Date(now);
+      trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+    
+      await tx.subscription.create({
+        data: {
+          workspaceId: workspace.id,
+          planId: trialPlan.id,
+          status: "TRIALING",
+          trialStartsAt: now,
+          trialEndsAt,
+        },
+      });
+    
       return {
-        companyId: company.id,
         userId: user.id,
+        workspaceId: workspace.id,
       };
     });
 
