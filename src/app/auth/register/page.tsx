@@ -7,12 +7,11 @@ import Link from "next/link";
 import { AuthPageShell } from "../../../components/auth/auth-page-shell";
 import { Button } from "../../../components/ui/button";
 import { inputFieldClass } from "../../../components/ui/field-classes";
-import { createDefaultAccounts } from "@/lib/default-accounts";
 
 export default function RegisterPage() {
   const router = useRouter();
 
-  const [companyName, setCompanyName] = useState("");
+  const [workspaceName, setWorkspaceName] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +31,7 @@ export default function RegisterPage() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        companyName,
+        workspaceName,
         name,
         email,
         password,
@@ -80,12 +79,12 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <input
           type="text"
-          name="companyName"
+          name="workspaceName"
           autoComplete="organization"
-          placeholder="Company name"
+          placeholder="Workspace / Accounting Office Name"
           className={inputFieldClass}
-          value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
+          value={workspaceName}
+          onChange={(e) => setWorkspaceName(e.target.value)}
         />
 
         <input

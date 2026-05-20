@@ -35,6 +35,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: {
             email,
           },
+          include: {
+            workspaceMemberships: {
+              orderBy: {
+                createdAt: "asc",
+              },
+              take: 1,
+            },
+          },
         });
 
         if (!user) {
@@ -50,12 +58,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
+        const membership = user.workspaceMemberships[0];
+
+        if (!membership) {
+          return null;
+        }
+
         return {
           id: user.id,
           email: user.email,
           name: user.name,
-          companyId: user.companyId,
-          role: user.role,
+          workspaceId: membership.workspaceId,
+          role: membership.role,
         };
       },
     }),
@@ -65,7 +79,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.userId = user.id;
-        token.companyId = user.companyId;
+        token.workspaceId = user.workspaceId;
         token.role = user.role;
       }
 
@@ -75,7 +89,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.userId as string;
-        session.user.companyId = token.companyId as string;
+        session.user.workspaceId = token.workspaceId as string;
         session.user.role = token.role as string;
       }
 
