@@ -103,8 +103,12 @@ export async function POST(req: Request) {
         },
       });
 
-      await tx.workspaceKyc.create({
-        data: {
+      await tx.workspaceKyc.upsert({
+        where: {
+          workspaceId: workspace.id,
+        },
+        update: {},
+        create: {
           workspaceId: workspace.id,
           status: "NOT_STARTED",
         },
@@ -127,7 +131,14 @@ export async function POST(req: Request) {
     console.error("REGISTER_ERROR", error);
 
     return NextResponse.json(
-      { error: "Something went wrong" },
+      {
+        error:
+          process.env.NODE_ENV === "production"
+            ? "Something went wrong"
+            : error instanceof Error
+              ? error.message
+              : "Something went wrong",
+      },
       { status: 500 }
     );
   }
