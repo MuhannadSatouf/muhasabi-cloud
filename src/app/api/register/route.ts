@@ -4,7 +4,6 @@ import bcrypt from "bcryptjs";
 import { flattenError, z } from "zod";
 
 import { prisma } from "../../../lib/prisma";
-import { createDefaultAccounts } from "@/lib/default-accounts";
 
 const registerSchema = z.object({
   workspaceName: z.string().min(2, "Workspace name is required"),
@@ -103,7 +102,14 @@ export async function POST(req: Request) {
           trialEndsAt,
         },
       });
-    
+
+      await tx.workspaceKyc.create({
+        data: {
+          workspaceId: workspace.id,
+          status: "NOT_STARTED",
+        },
+      });
+
       return {
         userId: user.id,
         workspaceId: workspace.id,

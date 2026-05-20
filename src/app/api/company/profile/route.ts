@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "../../../../auth";
+import { isKycCurrent } from "../../../../lib/kyc";
 import { prisma } from "../../../../lib/prisma";
 
 export async function GET() {
@@ -9,6 +10,23 @@ export async function GET() {
     return NextResponse.json(
       { error: "Unauthorized" },
       { status: 401 }
+    );
+  }
+
+  const kyc = await prisma.workspaceKyc.findUnique({
+    where: {
+      workspaceId: session.user.workspaceId,
+    },
+    select: {
+      status: true,
+      expiresAt: true,
+    },
+  });
+
+  if (!isKycCurrent(kyc)) {
+    return NextResponse.json(
+      { error: "KYC required" },
+      { status: 403 }
     );
   }
 
