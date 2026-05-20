@@ -34,6 +34,7 @@ model Workspace {
   memberships  WorkspaceMembership[]
   companies    Company[]
   subscription Subscription?
+  kyc          WorkspaceKyc?
 }
 
 model WorkspaceMembership {
@@ -60,7 +61,7 @@ model Company {
   updatedAt   DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  accounts   Account[]
+  accounts  Account[]
 
   @@unique([workspaceId, slug])
 }
@@ -125,8 +126,8 @@ model Subscription {
   currentPeriodStartsAt DateTime?
   currentPeriodEndsAt   DateTime?
 
-  provider              String?
-  providerCustomerId    String?
+  provider               String?
+  providerCustomerId     String?
   providerSubscriptionId String?
 
   createdAt DateTime @default(now())
@@ -134,4 +135,109 @@ model Subscription {
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   plan      Plan      @relation(fields: [planId], references: [id])
+}
+
+enum KycStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum KycIdType {
+  NATIONAL_ID
+  PASSPORT
+  RESIDENCE_PERMIT
+  OTHER
+}
+
+enum WorkspaceBusinessType {
+  INDIVIDUAL_ACCOUNTANT
+  ACCOUNTING_OFFICE
+  COMPANY
+  OTHER
+}
+
+model WorkspaceKyc {
+  id          String    @id @default(cuid())
+  workspaceId String    @unique
+  status      KycStatus @default(NOT_STARTED)
+
+  applicantFullName         String?
+  applicantDateOfBirth      DateTime?
+  applicantNationality      String?
+  applicantResidenceCountry String?
+  applicantPhone            String?
+  applicantAddress          String?
+  applicantAddressLine1     String?
+  applicantAddressLine2     String?
+  applicantCity             String?
+  applicantRegion           String?
+  applicantPostalCode       String?
+  applicantIdType           KycIdType?
+  applicantIdTypeOther      String?
+  applicantIdNumber         String?
+  applicantIsPep            Boolean    @default(false)
+  actingOnBehalfOfAnother   Boolean    @default(false)
+
+  businessLegalName           String?
+  businessType                WorkspaceBusinessType?
+  registrationCountry         String?
+  registrationNumber          String?
+  taxNumber                   String?
+  businessAddress             String?
+  businessAddressLine1        String?
+  businessAddressLine2        String?
+  businessCity                String?
+  businessRegion              String?
+  businessPostalCode          String?
+  businessAddressCountry      String?
+  website                     String?
+  serviceType                 String?
+  expectedClientCompanies     Int?
+  expectedMonthlyTransactions Int?
+
+  servesSanctionedCountries Boolean  @default(false)
+  highRiskIndustries        String[] @default([])
+  informationConfirmed      Boolean  @default(false)
+  termsAccepted             Boolean  @default(false)
+
+  submittedAt        DateTime?
+  approvedAt         DateTime?
+  rejectedAt         DateTime?
+  expiresAt          DateTime?
+  lastReminderSentAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  workspace        Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  beneficialOwners KycBeneficialOwner[]
+  reviewLogs       KycReviewLog[]
+}
+
+model KycBeneficialOwner {
+  id                  String   @id @default(cuid())
+  workspaceKycId      String
+  fullName            String
+  ownershipPercentage Decimal  @db.Decimal(5, 2)
+  nationality         String
+  residenceCountry    String
+  isPep               Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  workspaceKyc WorkspaceKyc @relation(fields: [workspaceKycId], references: [id], onDelete: Cascade)
+}
+
+model KycReviewLog {
+  id             String     @id @default(cuid())
+  workspaceKycId String
+  fromStatus     KycStatus?
+  toStatus       KycStatus
+  note           String?
+  createdAt      DateTime   @default(now())
+
+  workspaceKyc WorkspaceKyc @relation(fields: [workspaceKycId], references: [id], onDelete: Cascade)
 }
